@@ -11,40 +11,88 @@ final class FileToolsTests: XCTestCase {
     
     func testLineReader() {
         // expectation
-        let expectation = XCTestExpectation(description: "all lines are equal")
+        let allLinesEqual = expectation(description: "all lines are equal")
 
         // given
-        let testStringPublisher = [
-            "Das ist",
-            "",
-            "ein",
-            "Test",
-            ""
-        ].publisher
         let lineReader = LineReader()
         
         lineReader.linePublisher
             .print()
             .catch { _ in
-                Just("too bad")
+                Just(String())
             }
-            .zip(testStringPublisher)
+            .zip(["Das ist","","ein","Test",""].publisher)
             .sink(
             receiveCompletion: { completion in
                 XCTAssertTrue(completion == .finished)
-                expectation.fulfill()
+                allLinesEqual.fulfill()
             },
-            receiveValue: { lineFromFile, lineFromString in
-                XCTAssertTrue(lineFromFile == lineFromString, "\(lineFromFile) != \(lineFromString)")
+            receiveValue: { publishedFromLineReader, other in
+                XCTAssert(publishedFromLineReader == other, #"Strings "\#(publishedFromLineReader)" and "\#(other)" are not equal."#)
             })
             .store(in: &cancellables)
         
         // when ;-) -> async then
-        lineReader.read(from: Bundle.module.url(forResource: "testfile", withExtension: "txt")!.path)
-        wait(for: [expectation], timeout: 5.0)
+        let testfile = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
+        lineReader.read(url: testfile)
+
+        // then
+        waitForExpectations(timeout: 1, handler: nil)
     }
 
-    static var allTests = [
-        ("testLineReader", testLineReader)
-    ]
+    func testRead3Lines() {
+        // given
+        let numberOfLInesToRead = 3
+        let threeLinesRead = expectation(description: "3 lines read")
+
+        let lineReader = LineReader()
+        lineReader.linePublisher
+            .catch { _ in
+                Just(String())
+            }
+            .collect(3)
+            .sink(
+                receiveCompletion: { completion in
+                    XCTAssertTrue(completion == .finished)
+                    threeLinesRead.fulfill()
+                },
+                receiveValue: { threeLines in
+                    XCTAssertTrue(threeLines.count == numberOfLInesToRead, "Not the right amount of numbers read")
+                }
+            ).store(in: &cancellables)
+
+        // when
+        let testdata = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
+        lineReader.read(url: testdata, lines: numberOfLInesToRead)
+
+        // then
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+
+    func testSpeedHugeFile() {
+        // given
+        let hugeFileRead = expectation(description: "Huge file read")
+
+        let lineReader = LineReader()
+        lineReader.linePublisher
+            .catch { _ in
+                Just(String())
+            }
+            .sink(
+                receiveCompletion: { completion in
+                    XCTAssertTrue(completion == .finished)
+                    hugeFileRead.fulfill()
+                },
+                receiveValue: { _ in }
+            ).store(in: &cancellables)
+
+        // when
+        let rockyou = Bundle.module.url(forResource: "rockyou_500_000", withExtension: "txt")!
+        measure {
+            lineReader.read(url: rockyou, lines: 500_000)
+        }
+
+        // then
+        waitForExpectations(timeout: 1, handler: nil)
+    }
 }

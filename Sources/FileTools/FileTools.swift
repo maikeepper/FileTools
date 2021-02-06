@@ -9,28 +9,25 @@ import Combine
 import Foundation
 
 public struct LineReader {
-
     public enum Error: Swift.Error {
-        case cannotReadFile(String)
+        case cannotReadFile(URL)
     }
 
     private let subject = PassthroughSubject<String, LineReader.Error>()
+
     public var linePublisher: AnyPublisher<String, LineReader.Error> {
         return subject.eraseToAnyPublisher()
     }
-    
-    public init() {}
-    
-    public func read(from url: String, lines linesToRead: Int? = nil) {
-        guard let filePointer: UnsafeMutablePointer<FILE> = fopen(url, "r") else {
+
+    public func read(url: URL, lines linesToRead: Int? = nil) {
+        guard let filePointer: UnsafeMutablePointer<FILE> = fopen(url.path, "r") else {
             subject.send(completion: .failure(.cannotReadFile(url)))
             return
         }
-        
-        // if linesToRead < 0 { linesPointer = endOfFile } && readLines -= 1
-        var linesPointer: UnsafeMutablePointer<CChar>? = nil
-        var lineCap: Int = 0
-        var bytesRead = getline(&linesPointer, &lineCap, filePointer)
+
+        var buffer: UnsafeMutablePointer<CChar>? = nil
+        var cap: Int = 0
+        var bytesRead = getline(&buffer, &cap, filePointer)
         
         defer {
             fclose(filePointer)
@@ -41,9 +38,9 @@ public struct LineReader {
             if linesToRead == readLines {
                 break
             }
-            let lineStr = String.init(cString: linesPointer!).trimmingCharacters(in: .newlines)
+            let lineStr = String.init(cString: buffer!).trimmingCharacters(in: .newlines)
             subject.send(lineStr)
-            bytesRead = getline(&linesPointer, &lineCap, filePointer)
+            bytesRead = getline(&buffer, &cap, filePointer)
             readLines += 1
         }
         subject.send(completion: .finished)

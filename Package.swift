@@ -29,7 +29,8 @@ let package = Package(
             name: "FileToolsTests",
             dependencies: ["FileTools"],
             resources: [
-                .process("testfile.txt")
+                .process("testfile.txt"),
+                .process("rockyou_500_000.txt")
             ]
         ),
     ]
