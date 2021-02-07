@@ -4,17 +4,41 @@ Swift file helper collection
 
 ## Installation
 
-Check out the project and drag the package into your Xcode project. In your .xcodeproj file it should be added to the "Frameworks ..." section.
+In you Xcode project add `https://github.com/maikeepper/FileTools` as Swift package dependency.
 
-## Usage
+When you package your project, add this to your Package.swift manifest:
 
-import FileTools
+    dependencies: [
+        .package(url: "https://github.com/maikeepper/FileTools.git", branch: "main")
+    ]
 
-let lineReader = LineReader()
-lineReader.publisher.sink(
-    receiveValue: { lines in
-        ...
-    }
-)
+## Usage LineReader
 
-lineReader.read(from: path)
+    import FileTools
+
+Subscribe to read the file line by line
+
+    let lineReader = LineReader()
+    lineReader.publisher
+        .sink(
+            receiveValue: { line in
+                ...
+            }
+        )
+
+Subscribe to read only the first x lines from the file:
+
+    let lineReader = LineReader()
+    lineReader.publisher
+        .collect(10) // optional: read only 10 lines
+        .sink(
+            receiveValue: { 10lines in
+                10lines.foreach { line in
+                    ...
+                }
+            }
+        )
+
+After having defined your subscription, start reading
+
+    lineReader.read(url: <Url>)
