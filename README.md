@@ -26,11 +26,11 @@ Subscribe to read the file line by line
             }
         )
 
-Subscribe to read only the first x lines from the file:
+Subscribe to read the file in blocks of 10 lines each:
 
     let lineReader = LineReader()
     lineReader.linePublisher
-        .collect(10) // optional: read only 10 lines
+        .collect(10) // optional: read 10 lines at once
         .sink(
             receiveValue: { 10lines in
                 10lines.foreach { line in
@@ -42,3 +42,8 @@ Subscribe to read only the first x lines from the file:
 After having defined your subscription, start reading
 
     lineReader.read(url: <Url>)
+
+
+Alternatively, read only up to 25 lines
+
+    lineReader.read(url: <Url>, lines: 25)
