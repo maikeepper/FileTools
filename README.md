@@ -4,7 +4,7 @@ Swift file helper collection
 
 ## Installation
 
-In you Xcode project add `https://github.com/maikeepper/FileTools` as Swift package dependency.
+In your Xcode project add `https://github.com/maikeepper/FileTools` as Swift package dependency.
 
 When you package your project, add this to your Package.swift manifest:
 
@@ -19,7 +19,7 @@ When you package your project, add this to your Package.swift manifest:
 Subscribe to read the file line by line
 
     let lineReader = LineReader()
-    lineReader.publisher
+    lineReader.linePublisher
         .sink(
             receiveValue: { line in
                 ...
@@ -29,7 +29,7 @@ Subscribe to read the file line by line
 Subscribe to read only the first x lines from the file:
 
     let lineReader = LineReader()
-    lineReader.publisher
+    lineReader.linePublisher
         .collect(10) // optional: read only 10 lines
         .sink(
             receiveValue: { 10lines in
