@@ -17,7 +17,6 @@ final class FileToolsTests: XCTestCase {
         let lineReader = LineReader()
         
         lineReader.linePublisher
-            .print()
             .catch { _ in
                 Just(String())
             }
@@ -40,9 +39,9 @@ final class FileToolsTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
 
-    func testRead3Lines() {
+    func testLinesToRead() {
         // given
-        let numberOfLInesToRead = 3
+        let numberOfLinesToRead = 3
         let threeLinesRead = expectation(description: "3 lines read")
 
         let lineReader = LineReader()
@@ -57,13 +56,13 @@ final class FileToolsTests: XCTestCase {
                     threeLinesRead.fulfill()
                 },
                 receiveValue: { threeLines in
-                    XCTAssertTrue(threeLines.count == numberOfLInesToRead, "Not the right amount of numbers read")
+                    XCTAssertTrue(threeLines.count == numberOfLinesToRead, "Not the right amount of numbers read")
                 }
             ).store(in: &cancellables)
 
         // when
         let testdata = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
-        lineReader.read(url: testdata, lines: numberOfLInesToRead)
+        lineReader.read(url: testdata, lines: numberOfLinesToRead)
 
         // then
         waitForExpectations(timeout: 1, handler: nil)
@@ -90,6 +89,35 @@ final class FileToolsTests: XCTestCase {
         let rockyou = Bundle.module.url(forResource: "rockyou_500_000", withExtension: "txt")!
         measure {
             lineReader.read(url: rockyou, lines: 500_000)
+        }
+
+        // then
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+
+    func testMultipleReads() {
+        let numberOfReads = 2
+        assert(numberOfReads > 1)
+
+        let read = expectation(description: "read not executed")
+        read.expectedFulfillmentCount = numberOfReads
+
+        let lineReader = LineReader()
+        lineReader.linePublisher
+            .catch { _ in
+                Just(String())
+            }
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { _ in
+                    read.fulfill()
+                }
+            ).store(in: &cancellables)
+
+        // when
+        let testfile = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
+        (0..<numberOfReads).forEach { _ in
+            lineReader.read(url: testfile, lines: 1)
         }
 
         // then
