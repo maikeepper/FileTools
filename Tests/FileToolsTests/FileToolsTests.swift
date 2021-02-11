@@ -9,15 +9,15 @@ final class FileToolsTests: XCTestCase {
         cancellables = []
     }
     
-    func testLineReader() {
+    func testLinePublisher() {
         let allLinesEqual = expectation(description: "all lines are equal")
 
-        let testfile = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
-        testfile.linePublisher()
+        Bundle.module.url(forResource: "testfile", withExtension: "txt")!
+            .linePublisher()
             .catch { _ in
                 Just(String())
             }
-            .zip(["Das ist","","ein","Test",""].publisher)
+            .zip(["Das ist","","ein","Test","","über","mehrere","","Zeilen! Ende."].publisher)
             .sink(
             receiveCompletion: { completion in
                 XCTAssertTrue(completion == .finished)
@@ -31,35 +31,32 @@ final class FileToolsTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
 
-//    func testLinesToRead() {
-//        // given
-//        let numberOfLinesToRead = 3
-//        let threeLinesRead = expectation(description: "3 lines read")
-//
-//        let lineReader = LineReader()
-//        lineReader.linePublisher
-//            .catch { _ in
-//                Just(String())
-//            }
-//            .collect(3)
-//            .sink(
-//                receiveCompletion: { completion in
-//                    XCTAssertTrue(completion == .finished)
-//                    threeLinesRead.fulfill()
-//                },
-//                receiveValue: { threeLines in
-//                    XCTAssertTrue(threeLines.count == numberOfLinesToRead, "Not the right amount of numbers read")
-//                }
-//            ).store(in: &cancellables)
-//
-//        // when
-//        let testdata = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
-//        lineReader.read(url: testdata, lines: numberOfLinesToRead)
-//
-//        // then
-//        waitForExpectations(timeout: 1, handler: nil)
-//    }
-//
+    func testLinesToRead() {
+        // given
+        let numberOfLinesToRead = 3
+        let threeLinesRead = expectation(description: "3 lines read")
+
+        // when
+        Bundle.module.url(forResource: "testfile", withExtension: "txt")!
+            .linePublisher()
+            .catch { _ in
+                Just(String())
+            }
+            .collect(3)
+            .sink(
+                receiveCompletion: { completion in
+                    XCTAssertTrue(completion == .finished)
+                    threeLinesRead.fulfill()
+                },
+                receiveValue: { threeLines in
+                    XCTAssertTrue(threeLines.count == numberOfLinesToRead, "Not the right amount of numbers read")
+                }
+            ).store(in: &cancellables)
+
+        // then
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+
 //    func testSpeedHugeFile() {
 //        // given
 //        let hugeFileRead = expectation(description: "Huge file read")
