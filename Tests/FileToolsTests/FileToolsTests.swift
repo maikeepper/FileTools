@@ -57,59 +57,30 @@ final class FileToolsTests: XCTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
 
-//    func testSpeedHugeFile() {
-//        // given
-//        let hugeFileRead = expectation(description: "Huge file read")
-//
-//        let lineReader = LineReader()
-//        lineReader.linePublisher
-//            .catch { _ in
-//                Just(String())
-//            }
-//            .sink(
-//                receiveCompletion: { completion in
-//                    XCTAssertTrue(completion == .finished)
-//                    hugeFileRead.fulfill()
-//                },
-//                receiveValue: { _ in }
-//            ).store(in: &cancellables)
-//
-//        // when
-//        let rockyou = Bundle.module.url(forResource: "rockyou_500_000", withExtension: "txt")!
-//        measure {
-//            lineReader.read(url: rockyou, lines: 500_000)
-//        }
-//
-//        // then
-//        waitForExpectations(timeout: 1, handler: nil)
-//    }
-//
-//    func testMultipleReads() {
-//        let numberOfReads = 2
-//        assert(numberOfReads > 1)
-//
-//        let read = expectation(description: "read not executed")
-//        read.expectedFulfillmentCount = numberOfReads
-//
-//        let lineReader = LineReader()
-//        lineReader.linePublisher
-//            .catch { _ in
-//                Just(String())
-//            }
-//            .sink(
-//                receiveCompletion: { _ in },
-//                receiveValue: { _ in
-//                    read.fulfill()
-//                }
-//            ).store(in: &cancellables)
-//
-//        // when
-//        let testfile = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
-//        (0..<numberOfReads).forEach { _ in
-//            lineReader.read(url: testfile, lines: 1)
-//        }
-//
-//        // then
-//        waitForExpectations(timeout: 1, handler: nil)
-//    }
+    func testSpeedHugeFile() {
+        // given
+        let hugeFileRead = expectation(description: "Huge file read")
+        let hugeFile = Bundle.module.url(forResource: "rockyou_500_000", withExtension: "txt")!
+
+        let hugePublisher = hugeFile.linePublisher(lines: 300_000)
+            .catch { _ in
+                Just(String())
+            }
+            .makeConnectable()
+
+        hugePublisher
+            .sink(
+                receiveCompletion: { completion in
+                    XCTAssertTrue(completion == .finished)
+                    hugeFileRead.fulfill()
+                },
+                receiveValue: { _ in }
+            ).store(in: &cancellables)
+
+        measure {
+            hugePublisher.connect().store(in: &cancellables)
+        }
+
+        waitForExpectations(timeout: 10, handler: nil)
+    }
 }
