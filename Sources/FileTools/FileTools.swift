@@ -103,8 +103,7 @@ extension Publishers {
 
 
 extension URL {
-    func linePublisher(lines: Int? = nil) -> Publishers.LinePublisher {
-        return Publishers.LinePublisher(url: self, linesToRead: lines)
+    func linePublisher(lines linesToRead: Int? = nil) -> Publishers.LinePublisher {
+        return Publishers.LinePublisher(url: self, linesToRead: linesToRead)
     }
 }
-
