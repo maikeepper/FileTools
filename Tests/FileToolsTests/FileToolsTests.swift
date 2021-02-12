@@ -83,33 +83,4 @@ final class FileToolsTests: XCTestCase {
 
         waitForExpectations(timeout: 10, handler: nil)
     }
-
-//    func testMultipleReads() {
-//        let numberOfReads = 2
-//        assert(numberOfReads > 1)
-//
-//        let read = expectation(description: "read not executed")
-//        read.expectedFulfillmentCount = numberOfReads
-//
-//        let lineReader = LineReader()
-//        lineReader.linePublisher
-//            .catch { _ in
-//                Just(String())
-//            }
-//            .sink(
-//                receiveCompletion: { _ in },
-//                receiveValue: { _ in
-//                    read.fulfill()
-//                }
-//            ).store(in: &cancellables)
-//
-//        // when
-//        let testfile = Bundle.module.url(forResource: "testfile", withExtension: "txt")!
-//        (0..<numberOfReads).forEach { _ in
-//            lineReader.read(url: testfile, lines: 1)
-//        }
-//
-//        // then
-//        waitForExpectations(timeout: 1, handler: nil)
-//    }
 }
