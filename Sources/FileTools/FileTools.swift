@@ -19,7 +19,6 @@ class LinePublisherSubscription<S: Subscriber>: Subscription where S.Input == St
     var cap: Int = 0
     var readLines = 0
 
-
     init(url: URL, linesToRead: Int?, subscriber: S) {
         self.url = url
         self.linesToRead = linesToRead
@@ -67,6 +66,9 @@ class LinePublisherSubscription<S: Subscriber>: Subscription where S.Input == St
     }
 
     func cancel() {
+        defer {
+            buffer?.deallocate()
+        }
         subscriber = nil
         if let _ = filePointer {
             fclose(filePointer)
