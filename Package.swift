@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "FileTools",
     platforms: [
-        .macOS("10.15"),
+        .macOS(.v11),
         .iOS(.v13)
     ],
     products: [
