@@ -31,20 +31,20 @@ class LinePublisherSubscription<S: Subscriber>: Subscription where S.Input == St
 
         if openDemand > 0 && filePointer == nil {
             subscriber?.receive(completion: .failure(.cannotReadFile(url)))
-            cleanUp()
+            cancel()
             return
         }
 
         while openDemand > 0 {
             if readLines == linesToRead {
                 subscriber?.receive(completion: .finished)
-                cleanUp()
+                cancel()
                 return
             }
 
             guard let line = obtainLine() else {
                 subscriber?.receive(completion: .finished)
-                cleanUp()
+                cancel()
                 return
             }
 
@@ -65,17 +65,13 @@ class LinePublisherSubscription<S: Subscriber>: Subscription where S.Input == St
         }
     }
 
-    private func cleanUp() {
-        defer {
-            free(buffer)
-        }
-        if let _ = filePointer {
-            fclose(filePointer)
-        }
-    }
-
     func cancel() {
         subscriber = nil
+    }
+
+    deinit {
+        free(buffer)
+        fclose(filePointer)
     }
 }
 
